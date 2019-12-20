@@ -1,0 +1,20 @@
+html body .list a.item-link[href="#"] {
+    color: var(--f7-theme-color) !important;
+}
+
+.icon.material-icons {
+    font-size: 29px;
+}
+
+.dialog-button.dialog-button-bold {
+    font-weight: 700 !important;
+}
+
+/* .toolbar .icon {
+    margin-bottom: -1px;
+}
+
+.toolbar .icon.f7-icons {
+    font-size: 25px;
+    margin-bottom: -5px;
+} */

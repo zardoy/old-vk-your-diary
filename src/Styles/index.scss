@@ -1,0 +1,23 @@
+@keyframes blink_button {
+    from, to{
+        text-shadow: none;
+    }
+
+    40% {
+        text-shadow: 0 0 10px white;
+    }
+}
+
+.show_group_token_dialog {
+    .dialog-text {
+        font-size: 14px;
+    }
+}
+
+body {
+    user-select: none;
+}
+
+.user-select-text {
+    user-select: text;
+}
