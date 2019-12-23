@@ -45,7 +45,7 @@ export default {
                 let cancelButtonParams = {
                     text: app.params.dialog.buttonCancel,
                     bold: app.device.ios,
-                    keyCodes: [ 27 ],
+                    keyCodes: [27],
                     onClick: cancelButtonClick
                 };
                 let confirmButtonParams = {
@@ -53,7 +53,7 @@ export default {
                     onClick: confirmButton.onClick,
                     color: confirmButton.level === "danger" ? "red" : null,
                     cssClass: confirmButton.cssClass,
-                    keyCodes: [ 13 ]
+                    keyCodes: [13]
                 };
                 let dialog = app.dialog.create({
                     title,
@@ -64,11 +64,11 @@ export default {
                     onClick,
                     destroyOnClose: true,
                     closeByBackdropClick: false,
-                    buttons: verticalButtons ? [confirmButtonParams, cancelButtonParams] : [cancelButtonParams, confirmButtonParams ]
+                    buttons: verticalButtons ? [confirmButtonParams, cancelButtonParams] : [cancelButtonParams, confirmButtonParams]
                 });
                 dialog.open();
                 return dialog;
             }
         }
     }
-} as Framework7Plugin
+} as any as Framework7Plugin

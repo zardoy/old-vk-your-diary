@@ -9,10 +9,10 @@ import "./Localization";
 import "framework7-icons";
 import "./Styles/index.scss";
 import "./Styles/f7fixes.css";
+import "./Styles/material-icons/material-icons.css"
 import "framework7/css/framework7.bundle.min.css";
 
-// import App from './App';
-import App from './App/indexDummy';
+import App from './App';
 import ErrorBoundary from './Components/ErrorBoundary';
 import mVKMiniAppsScrollHelper from '@vkontakte/mvk-mini-apps-scroll-helper';
 
@@ -21,13 +21,12 @@ import "./F7Plugins/connect";
 
 mVKMiniAppsScrollHelper(document.getElementById('root'));
 
-if (process.env.NODE_ENV === "development") console.clear();
+if (process.env.NODE_ENV !== "production") console.clear();
 
-// ReactDOM.render(
-//     <ErrorBoundary>
-//         <Provider store={store}>
-//             <App />
-//         </Provider>
-//     </ErrorBoundary>, document.getElementById('root')
-// );
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+    <ErrorBoundary>
+        <Provider store={store}>
+            <App />
+        </Provider>
+    </ErrorBoundary>, document.getElementById('root')
+);

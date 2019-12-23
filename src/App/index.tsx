@@ -33,7 +33,7 @@ const settingsSaver = (generalSettings) => {
     let platformSettings = {};
     Object.entries(settingsScheme).forEach(([, listData]) => {
         Object.entries(listData.items).forEach(([settingID, settingData]) => {
-            if (!(settingID in generalSettings))return;
+            if (!(settingID in generalSettings)) return;
             if (settingData.tags && settingData.tags.includes("diffPlatform")) {
                 platformSettings[settingID] = generalSettings[settingID];
                 delete generalSettings[settingID];
@@ -60,10 +60,10 @@ const getAppUserSettings = async () => {
     const generalSettings = await vkStorageGet(VKStorageKeys.APP_GENERAL_SETTINGS);
     const platformSettings = await vkStorageGet(getSettingPlatform());
 
-    return {...(generalSettings || {}), ...(platformSettings || {})};
+    return { ...(generalSettings || {}), ...(platformSettings || {}) };
 }
 
-const useInitUser = ():[boolean, {}] => {
+const useInitUser = (): [boolean, {}] => {
     let dispatch = useDispatch();
     let [userSettings, setUserSettings] = useState({});
     let [loadingComplete, setLoadingComplete] = useState(false);
@@ -86,10 +86,10 @@ const useInitUser = ():[boolean, {}] => {
                     let currentGroupId = +await vkStorageGet(VKStorageKeys.CURRENT_GROUP_ID);
 
                     setUserSettings(await getAppUserSettings());
-                    
+
                     setLoadingComplete(true);
                     onLoadingComplete();
-                    
+
                     if (currentGroupId && groupsId.includes(currentGroupId)) {
                         dispatch(setCurrentGroupId(currentGroupId, false));
                         f7.views["diary"].router.navigate("/diary/");
@@ -192,7 +192,7 @@ let AppComponent: React.FC = () => {
                         <Link tabLink="#diary-tab" tabLinkActive iconMaterial="subject" text={_t("Diary")} />
                         <Link tabLink="#settings-tab" iconF7="gear_alt" iconMd="material:settings_applications" text={_t("Settings")} />
                     </Toolbar>
-                    <View tab id="diary-tab" tabActive routesAdd={routes.diaryView} name="diary">
+                    <View tab id="diary-tab" tabActive routes={routes.diaryView} name="diary">
                         <LoadingPage />
                     </View>
                     <View tab id="settings-tab" routesAdd={routes.settingsView} name="settings" />

@@ -3,8 +3,8 @@ import { Framework7Plugin, Framework7Class } from "framework7/components/app/app
 import { Gauge } from "framework7/components/gauge/gauge";
 
 declare module "framework7/components/app/app-class" {
-    interface Framework7Class<Events> extends PluginScheme {}
-    interface Framework7Params extends PluginParams {}
+    interface Framework7Class<Events> extends PluginScheme { }
+    interface Framework7Params extends PluginParams { }
 }
 
 type paramsKeys = Exclude<keyof Gauge.Parameters, "el">;
@@ -24,7 +24,7 @@ type GaugeInstance = ReturnType<Framework7["gauge"]["create"]>;
 
 interface PluginScheme {
     fileUploadGauge: {
-        show(params: {labelText: string, bottomText?: string }): ReturnType<Framework7["dialog"]["create"]>,
+        show(params: { labelText: string, bottomText?: string }): ReturnType<Framework7["dialog"]["create"]>,
         close(animate?): void,
         update(params: GaugeParams): ReturnType<Framework7["gauge"]["update"]>,
         handleProgressEvent(event: ProgressEvent): void,
@@ -43,7 +43,7 @@ let extendApp = (app: Framework7) => {
 
     app.fileUploadGauge = {
         show({ labelText, bottomText }) {//double click to cancel
-            if(dialog) throw new Error(`${errPluginTitle}: Only one opened dialog with gauge allowed!`);
+            if (dialog) throw new Error(`${errPluginTitle}: Only one opened dialog with gauge allowed!`);
             dialog = app.dialog.create({
                 el: document.createElement("div"),
                 closeByBackdropClick: false
@@ -54,12 +54,12 @@ let extendApp = (app: Framework7) => {
 
             gauge = app.gauge.create({
                 el: dialog.el.appendChild(document.createElement("div")),
-                value:0,
+                value: 0,
                 size: 250,
                 borderColor: '#2196f3',
                 borderWidth: String(15),
-                bgColor:'rgba(0, 0, 0, 0.1)',
-                valueText:"0%",
+                bgColor: 'rgba(0, 0, 0, 0.1)',
+                valueText: "0%",
                 valueFontSize: String(41),
                 valueTextColor: "white",
                 labelText: labelText,
@@ -77,22 +77,22 @@ let extendApp = (app: Framework7) => {
                 gauge.destroy();
                 dialog.el.remove();
                 dialog.destroy();
-                
+
                 dialog = null;
                 gauge = null;
             });
             dialog.close(animate);
         },
         update(params) {
-            if(!gauge)throw Error(`${errPluginTitle}: You need to call show() the gauge before using update()!`);
+            if (!gauge) throw Error(`${errPluginTitle}: You need to call show() the gauge before using update()!`);
             return gauge.update(params as any);
         },
         handleProgressEvent(event: ProgressEvent) {
-            var perc = event.loaded/event.total;
-            if(!isFinite(perc))perc=0;
+            var perc = event.loaded / event.total;
+            if (!isFinite(perc)) perc = 0;
             app.fileUploadGauge.update({
                 value: perc,
-                valueText: Math.floor(perc*100)+"%"
+                valueText: Math.floor(perc * 100) + "%"
             });
         },
         get gauge() {
@@ -112,4 +112,4 @@ export default {
         }
     } as any,
     create: extendApp
-} as Framework7Plugin
+} as any as Framework7Plugin

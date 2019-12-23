@@ -2,7 +2,7 @@ import { Framework7Plugin, Framework7Class, default as f7Class } from "framework
 import Framework7 from "framework7";
 
 declare module "framework7/components/app/app-class" {
-    interface Framework7Class<Events> extends Plugin {}
+    interface Framework7Class<Events> extends Plugin { }
 }
 
 interface FileInfo {
@@ -47,7 +47,7 @@ interface Plugin {
 }
 
 const getFileName = (file: File | string): string => {
-    if(typeof file !== "string"){
+    if (typeof file !== "string") {
         return file.name;
     } else {
         return file;
@@ -61,14 +61,14 @@ export default {
         app.finder7 = {
             getReadableFileSize(file: number | File) {
                 let fileSizeInBytes: number;
-                if(typeof file !== "number"){
+                if (typeof file !== "number") {
                     fileSizeInBytes = file.size;
                 } else {
                     fileSizeInBytes = file;
                 }
                 var i = 0;
                 var byteUnits = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-                while(fileSizeInBytes > 1024) {
+                while (fileSizeInBytes > 1024) {
                     fileSizeInBytes = fileSizeInBytes / 1024;
                     i++;
                 }
@@ -82,7 +82,7 @@ export default {
             },
             hasFileExtension(files: File[] | string[], extensionToSearch: string) {
                 let fileExtensions: Array<String>;
-                if(typeof files[0] !== "string" && files[0].name){
+                if (typeof files[0] !== "string" && files[0].name) {
                     fileExtensions = (files as Array<File>).map(file => file.name);
                 } else {
                     fileExtensions = files as Array<String>;
@@ -92,7 +92,7 @@ export default {
             normalizeFileName(file: File | string) {
                 let fileName = getFileName(file);
                 let splittedFileName = fileName.split(".");
-                if(splittedFileName.length === 1)return fileName;
+                if (splittedFileName.length === 1) return fileName;
                 splittedFileName.push(
                     splittedFileName.pop().toLowerCase()
                 );
@@ -100,4 +100,4 @@ export default {
             }
         }
     }
-} as Framework7Plugin
+} as any as Framework7Plugin

@@ -4,9 +4,9 @@ import { f7 } from "framework7-react";
 export function handleVkConnectError(errorTitle: string, err, onErrorCausedNotByVK?: (message: string) => any) {
     let message = err.message || "Неизвестная ошибка";
     let vkError = true;
-    switch(err.error_type){
+    switch (err.error_type) {
         case "client_error":
-            if(err.error_data.error_code === 4 || err.error_data.error_reason === "Operation denied by user")return;
+            if (err.error_data.error_code === 4 || err.error_data.error_reason === "Operation denied by user") return;
             message = "Client: " + (err.error_data.error_description || err.error_data.error_reason || "Неизвестная ошибка на стороне клиента");
             break;
         case "api_error":
@@ -18,7 +18,7 @@ export function handleVkConnectError(errorTitle: string, err, onErrorCausedNotBy
         default:
             vkError = false;
     }
-    vkConnect.send("VKWebAppTapticNotificationOccurred", {"type": "error"});
+    vkConnect.send("VKWebAppTapticNotificationOccurred", { "type": "error" });
     if (!vkError && onErrorCausedNotByVK) {
         onErrorCausedNotByVK(message);
     } else {

@@ -2,6 +2,7 @@ import { Framework7Params } from "framework7/components/app/app-class";
 import { _t } from "../Localization";
 import routes from "./routes";
 import { vkIsDesktopVersion, getVKLanguage } from "../Helpers/URLParams";
+import vkConnect from "@vkontakte/vk-connect";
 
 export default {
     id: "com.zardoy.vk-diary",
@@ -26,5 +27,10 @@ export default {
     },
     swipeout: {
         removeElements: false
+    },
+    on: {
+        ptrPullEnd(_e, _d) {
+            vkConnect.send("VKWebAppTapticImpactOccurred", { style: "heavy" })
+        }
     }
 } as Framework7Params

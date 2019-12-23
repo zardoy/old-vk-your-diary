@@ -2,7 +2,7 @@ import { Framework7Plugin } from "framework7/components/app/app-class";
 import Framework7 from "framework7";
 
 declare module "framework7/components/app/app-class" {
-    interface Framework7Class<Events> extends Plugin {}
+    interface Framework7Class<Events> extends Plugin { }
 }
 
 type ParamsFromToastToCopy = "position" | "closeTimeout" | "text" | "destroyOnClose";
@@ -35,16 +35,16 @@ export default {
                     closeTimeout: params.closeTimeout || 1500,
                     text: `
                     <i class="color-green material-icons icon margin-right vertical-align-middle">${
-                        params.type === "error" ? "error" : 
-                        params.type === "success" ? "" : null
-                    }</i>
+                        params.type === "error" ? "error" :
+                            params.type === "success" ? "" : null
+                        }</i>
                     <span>${safe_html_tags_replace(params.text)}</span>
                     `,
                     destroyOnClose: true
                 });
-                
+
                 return toast;
             }
         }
     }
-} as Framework7Plugin
+} as any as Framework7Plugin
