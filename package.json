@@ -5,7 +5,7 @@
     "email": "vital2580@icloud.com"
   },
   "description": "Дневник, не знающий своих границ",
-  "version": "0.11.4",
+  "version": "0.11.5",
   "private": true,
   "dependencies": {
     "@types/jest": "24.0.21",
