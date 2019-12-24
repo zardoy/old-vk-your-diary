@@ -30,7 +30,7 @@ export default {
     },
     on: {
         ptrPullEnd(_e, _d) {
-            vkConnect.send("VKWebAppTapticImpactOccurred", { style: "heavy" })
+            vkConnect.send("VKWebAppTapticImpactOccurred", { style: "light" })
         }
     }
 } as Framework7Params
