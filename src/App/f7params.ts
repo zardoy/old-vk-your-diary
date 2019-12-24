@@ -23,7 +23,7 @@ export default {
         preloaderTitle: _t("Loading...")
     },
     view: {
-        removeElements: false
+        // removeElements: false //todo: разобраться
     },
     swipeout: {
         removeElements: false
