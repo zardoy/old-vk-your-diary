@@ -30,7 +30,7 @@ export default {
     },
     on: {
         ptrPullEnd(_e, _d) {
-            vkConnect.send("VKWebAppTapticImpactOccurred", { style: "light" });
+            vkConnect.send("VKWebAppTapticSelectionChanged");
         },
         toggleChange(_e) {
             vkConnect.send("VKWebAppTapticImpactOccurred", { style: "light" });
