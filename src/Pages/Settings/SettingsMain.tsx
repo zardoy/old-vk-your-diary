@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Page, Navbar, BlockTitle, List, ListItem, Icon, BlockFooter, f7, Toolbar, Link, ListButton } from "framework7-react";
+import { Page, Navbar, BlockTitle, List, ListItem, Icon, BlockFooter, f7 } from "framework7-react";
 import { _t } from "../../Localization";
 import { useSelector } from "react-redux";
 import { AppState } from "../../Redux/types";
@@ -18,8 +18,8 @@ let SettingsTab: React.FC = () => {
     let currentGroupId = useSelector((state: AppState) => state.groups.currentGroupId)
     let selectedGroupInfo = useSelector(getSelectedGroupInfo)//todo: optimize it
 
-    let { showGroupToken, propmtGenerateNewToken, shareJoinLink } = useMemo(() => getGroupActions(currentGroupId), [ currentGroupId ]);
-    
+    let { showGroupToken, propmtGenerateNewToken, shareJoinLink } = useMemo(() => getGroupActions(currentGroupId), [currentGroupId]);
+
     return <Page>
         <Navbar title={_t("Settings")} />
         <BlockTitle medium className="user-select-text">{selectedGroupInfo.group_name}</BlockTitle>

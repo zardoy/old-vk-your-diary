@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { App, View, f7, f7ready, Views, Toolbar, Link } from "framework7-react";
 import vkConnect from "@vkontakte/vk-connect";
 import f7params from "./f7params";
@@ -69,7 +69,9 @@ const useInitUser = (): [boolean, {}] => {
     let [loadingComplete, setLoadingComplete] = useState(false);
     useEffect(() => {
         const onLoadingComplete = () => {
-            // f7.views.current.router.navigate("/");
+            f7.views["settings"].router.navigate("/", {
+                reloadAll: true
+            });
         }
         const controller = new AbortController();
         const inner = async (_attemp_number = 1) => {
@@ -92,7 +94,7 @@ const useInitUser = (): [boolean, {}] => {
 
                     if (currentGroupId && groupsId.includes(currentGroupId)) {
                         dispatch(setCurrentGroupId(currentGroupId, false));
-                        f7.views["diary"].router.navigate("/diary/");
+                        f7.views["diary"].router.navigate("/");
                     } else {
                         f7.views.current.router.navigate("/groupsSelect/", {
                             props: {
@@ -192,10 +194,10 @@ let AppComponent: React.FC = () => {
                         <Link tabLink="#diary-tab" tabLinkActive iconMaterial="subject" text={_t("Diary")} />
                         <Link tabLink="#settings-tab" iconF7="gear_alt" iconMd="material:settings_applications" text={_t("Settings")} />
                     </Toolbar>
-                    <View tab id="diary-tab" tabActive routes={routes.diaryView} name="diary">
+                    <View tab id="diary-tab" tabActive routesAdd={routes.diaryView} name="diary">
                         <LoadingPage />
                     </View>
-                    <View tab id="settings-tab" routesAdd={routes.settingsView} name="settings" />
+                    <View tab id="settings-tab" routesAdd={routes.settingsView} name="settings" loadInitialPage={false} />
                 </Views>
             }
         </App>

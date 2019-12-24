@@ -29,12 +29,12 @@ const openTokenForm = () => {
 
 let GroupsSelect: React.FC<Props> = (props) => {
     let [showGroupsSkeleton, setShowGroupsSkeleton] = useState(false);
-    
+
     let cachedGroups = useSelector((state: AppState) => state.groups.savedGroups);
     let currentGroupId = useSelector((state: AppState) => state.groups.currentGroupId);
     let groupsLimitReached = useSelector((state: AppState) => state.groups.limitReached);
-    
-    
+
+
     let selectRequired = currentGroupId === null;
     let [isAddGroupActionsOpen, openAddGroupActions, closeAddGroupActions] = useF7PopoutControl(false);
 
@@ -45,7 +45,7 @@ let GroupsSelect: React.FC<Props> = (props) => {
         dispatch(setSelectedHomeworkType("topical"));
         dispatch(setCurrentGroupId(groupId, true));
         f7.tab.show("#diary-tab");
-        f7.views["diary"].router.navigate("/diary/");
+        f7.views["diary"].router.navigate("/");
     }
 
     const createGroup = () => {

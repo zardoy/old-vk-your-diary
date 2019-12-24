@@ -8,7 +8,7 @@ export default {
     id: "com.zardoy.vk-diary",
     version: process.env.REACT_APP_VERSION,
     name: document.title,
-    theme: vkIsDesktopVersion ? "aurora" : "auto",
+    theme: vkIsDesktopVersion() ? "aurora" : "auto",
     language: getVKLanguage(),
     routes: routes.general,
     panel: {

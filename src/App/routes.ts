@@ -38,10 +38,11 @@ let routes: appRoutes = {
                 component: JoinGroupPopup
             }
         },
+        // defaultRoute
     ],
     diaryView: [
         {
-            path: "/diary/",
+            path: "/",
             component: HomeworkMain,
             options: {
                 transition: "f7-dive"
@@ -70,7 +71,7 @@ let routes: appRoutes = {
     ],
     settingsView: [
         {
-            path: "/settings/",
+            path: "/",
             component: SettingsMain
         }
     ],
@@ -82,12 +83,13 @@ let routes: appRoutes = {
         {
             path: "/enterToken/",
             component: GroupsSelectTokenPage
-        }
+        },
+        defaultRoute
     ],
 };
 
-routes = Object.fromEntries(
-    Object.entries(routes).map(([routesName, routes]) => [routesName, [...routes, defaultRoute]])
-);
+// routes = Object.fromEntries(
+//     Object.entries(routes).map(([routesName, routes]) => [routesName, [...routes, defaultRoute]])
+// );
 
 export default routes;

@@ -6,9 +6,11 @@ export const FILE_UPLOAD_SIZE_LIMIT = 19_922_944;
 
 export const uploadFiles = (fileList: FileList): Promise<number[]> => {
     let files = [].slice.call(fileList);
-    
+
     let totalFilesSize = files.map(file => file.size).reduce((prevSize, currentSize) => prevSize + currentSize);
-    
+
+    if (totalFilesSize >= 1e+7) throw new Error("Files size limit (100MB) reached!")
+
     f7.fileUploadGauge.show({
         labelText: "Подключение..."
     });
@@ -16,7 +18,7 @@ export const uploadFiles = (fileList: FileList): Promise<number[]> => {
     let uploadedSize = 0, currentFile = 1;
     function handleUploadProgress(uploadEvent: ProgressEvent) {
         let perc = (uploadedSize + uploadEvent.loaded) / totalFilesSize;
-        if(isFinite(perc))perc = 0;
+        if (isFinite(perc)) perc = 0;
         f7.fileUploadGauge.update({
             value: perc,
             valueText: Math.floor(perc * 100) + "%",
@@ -38,7 +40,7 @@ function uploadFile(file: File, showProgressCallback: (e: ProgressEvent) => void
         let xhr = new XMLHttpRequest();
         let url = new URL(getBackendUrlBase());
         let formData = new FormData();
-        
+
         url.searchParams.append("method", "file.Upload");
         xhr.responseType = "json";
         xhr.open("post", url.toString(), true);
@@ -50,13 +52,13 @@ function uploadFile(file: File, showProgressCallback: (e: ProgressEvent) => void
         xhr.upload.onprogress = showProgressCallback;
 
         xhr.onload = () => {
-            if(xhr.response.error){
+            if (xhr.response.error) {
                 reject(new ServerError({
-                    message: xhr.response.error.message, 
-                    error_code: xhr.response.error.error_code, 
+                    message: xhr.response.error.message,
+                    error_code: xhr.response.error.error_code,
                     method_name: "file.Upload"
                 }));
-            }else{
+            } else {
                 resolve(+xhr.response.file_id);
             }
         }
