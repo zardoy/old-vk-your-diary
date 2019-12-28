@@ -31,7 +31,7 @@ const getParsedData = (key: VKStorageKeys, value: string) => {
 }
 
 export async function vkStorageGet<T extends VKStorageKeys | VKStorageKeys[]>(key: T): Promise<T extends Array<any> ? IKeys : any | null> {
-    if (process.env.NODE_ENV === "production") console.log("%cVK STORAGE GET REQUESTED:", "color: deepskyblue", key);
+    if (process.env.NODE_ENV === "production") console.log("%cVK STORAGE KEY REQUESTED:", "color: deepskyblue", key);
     if (!getVKParam("app_id")) return null;
     let { keys } = await vkConnect.sendPromise("VKWebAppStorageGet", { keys: [].concat(key) });
     keys = keys.map(data =>
