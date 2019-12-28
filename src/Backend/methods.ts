@@ -75,7 +75,7 @@ export function logApplicationErrorToServer(errorObj: Error, additionalInfo?: st
     vkConnect.send("VKWebAppTapticNotificationOccurred", { "type": "error" });
     let vkPlatform = getVKParam("platform") || "notVK";
     let platformInfo = `${Framework7.device.os} ${Framework7.device.osVersion || ""} (${vkPlatform})`;
-    let errorMessage = `${errorObj.message}::${JSON.stringify(errorObj)}::${errorObj.stack}`;
+    let errorMessage = `${JSON.stringify(errorObj)}::${errorObj.stack}`;
     let messageToServer = `${additionalInfo} \n${platformInfo}: ${errorMessage}`;
     console.log("Report Error: " + messageToServer);
     if (process.env.NODE_ENV !== "production" || process.env.REACT_APP_REPORT_ERRORS === "false") return;
