@@ -57,17 +57,45 @@ let HomeworkInput: React.FC<{ name: string }> = (props) => {
     return <ListInput
         label="Задание"
         outline
-        required
-        validate
         clearButton
-        autocomplete="off"
-        onInputClear={() => formik.setFieldValue(props.name, "")}
+        // onInputClear={() => formik.setFieldValue(props.name, "", true)} // - it doesn't work
         input={false}
-        {...fieldProps}
     >
-        <input slot="input" ref={inputRef} />
+        <input
+            slot="input"
+            type="text"
+            autocomplete="off"
+            required
+            validate
+            ref={inputRef}
+            {...fieldProps as any}
+        />
     </ListInput>;
 }
+
+let FormLayout: React.FC = () => {
+    let formik = useFormikContext();
+    return <form onSubmit={formik.submitForm}>
+        <div className="list no-hairlines-md">
+            <ul>
+                <SubjectInput name="subject" />
+                <HomeworkInput name="homework" />
+            </ul>
+        </div>
+        <Block>
+            <Button
+                fill
+                large
+                disabled={Object.keys(formik.errors).length !== 0}
+                type="submit"
+            >
+                {/* {editingMode ? "Редактировать" : "Добавить"} ДЗ */}
+            </Button>
+        </Block>
+    </form>;
+}
+
+FormLayout = React.memo(FormLayout);
 
 let HomeworkEditor: React.FC<Props> = (props) => {
     let { taskId: editingTaskId } = props;
@@ -156,54 +184,8 @@ let HomeworkEditor: React.FC<Props> = (props) => {
                 onSubmit={submitUserData}
                 validationSchema={validationSchema}
             >
-                <>
-                    <List noHairlinesMd form>
-                        {/* {//string inputs
-                    Object.entries(formik.values).map(([name, value]) => {
-                        <ListInput
-                            key={name}
-                            outline
-                            label={name}
-                            name={name}
-                            value={formik.values[name]}
-                            required
-                            validate
-                            clearButton
-                            autocomplete="off"
-                            onChange={formik.handleChange}
-                            onInputClear={() => formik.setFieldValue(name, "")}
-                        />
-                    })
-                } */}
-                        <SubjectInput slot="list" name="subject" />
-                        <HomeworkInput name="homework" />
-                    </List>
-                    <Block>
-                        {/* <Button
-                        fill
-                        large
-                        // disabled={Object.keys(errors).length !== 0}
-                        onClick={}
-                    >
-                        {editingMode ? "Редактировать" : "Добавить"} ДЗ
-                    </Button> */}
-                    </Block>
-                </>
+                <FormLayout />
             </Formik>
-
-            {/* return <ListInput
-                                        key={inputData.name}
-                                        outline
-                                        label={inputData.label}
-                                        name={inputData.name}
-                                        onChange={handleChange}
-                                        value={values[inputData.name]}
-                                        required
-                                        autocomplete="off"
-                                        validate
-                                        onInputClear={e => { this.handleClearButton(e); handleChange(e) }}
-                                        {...props}
-                                    />; */}
             {/* <ListInput
                     type="file"
                     label="Прикрепленные файлы"
@@ -237,14 +219,3 @@ HomeworkEditor = React.memo(HomeworkEditor);
 HomeworkEditor.displayName = "HomeworkEditor";
 
 export default HomeworkEditor;
-
-// const mapStateToProps = (state: AppState): StateProps => ({
-//     homework: state.homework.cached.topical,
-//     knownSubjects: state.homework.knownSubjects,
-//     currentGroupId: state.groups.currentGroupId
-// })
-
-// export default reduxConnect(mapStateToProps, {
-//     editHomeworkTask,
-//     appendHomeworkTask
-// })(HomeworkEditor);
