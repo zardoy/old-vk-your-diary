@@ -9,7 +9,7 @@ export const uploadFiles = (fileList: FileList): Promise<number[]> => {
 
     let totalFilesSize = files.map(file => file.size).reduce((prevSize, currentSize) => prevSize + currentSize);
 
-    if (totalFilesSize >= 1e+7) throw new Error("Files size limit (100MB) reached!")
+    // if (totalFilesSize >= 1e+7) throw new Error("Files size limit (100MB) reached!")
 
     f7.fileUploadGauge.show({
         labelText: "Подключение..."
