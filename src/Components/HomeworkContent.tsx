@@ -17,28 +17,32 @@ let HomeworkContent: React.FC<Props> = ({ homework }) => {
     });
 
     let enableSwiper = useSettingValue("useHorizontalSwiper");
+    let HomeworkTotal = <BlockFooter className="text-align-center">Всего {homeworkLength} заданий.</BlockFooter>;
     let Content;
-    if(!enableSwiper){
+    if (!enableSwiper) {
         Content = <>
             {
                 Object.entries(homework).map(([day, tasks]) => (
                     <DiaryDay key={day} dayDate={day} taskList={tasks} />
                 ))
             }
-            <BlockFooter className="text-align-center">Всего {homeworkLength} заданий.</BlockFooter>
+            {HomeworkTotal}
         </>;
-    }else{
-        Content = 
-            <Swiper pagination style={{height: "100%"}}>
-                {Object.entries(homework).map(([day, tasks]) => (
-                    <SwiperSlide key={day}>
-                        <DiaryDay dayDate={day} taskList={tasks} />
-                    </SwiperSlide>
+    } else {
+        Content =
+            <Swiper pagination style={{ height: "100%" }}>
+                {Object.entries(homework).map(([day, tasks], index) => (
+                    <>
+                        <SwiperSlide key={day}>
+                            <DiaryDay dayDate={day} taskList={tasks} />
+                        </SwiperSlide>
+                        {index === homeworkLength - 1 ? HomeworkTotal : null}
+                    </>
                 ))}
                 {/* <div slot="after-wrapper" className="swiper-pagination swiper-pagination-clickable swiper-pagination-bullets"></div> */}
             </Swiper>;
     }
-    
+
     return Content;
 }
 

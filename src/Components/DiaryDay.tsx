@@ -34,24 +34,23 @@ let DiaryDay: React.FC<Props> = (props) => {
             <List mediaList>
                 {taskList.map((task) => {
                     return <ListItem
-                        key={task.task_id} 
-                        title={task.subject} 
-                        text={task.homework} 
-                        link="#"
+                        key={task.task_id}
+                        title={task.subject}
+                        text={task.homework}
                         checkbox={useCheckbox}
                         onClick={() => openTaskPage(task.task_id)}
                     >
-                        {task.files.length ? 
-                        <div slot="after">
-                            <Icon f7="doc">
-                                {task.files.length === 1 ? null : 
-                                    <Badge color="red">{task.files.length}</Badge>
-                                }
-                            </Icon>
-                        </div>
-                         : null}
+                        {task.files.length ?
+                            <div slot="after">
+                                <Icon f7="doc">
+                                    {task.files.length === 1 ? null :
+                                        <Badge color="red">{task.files.length}</Badge>
+                                    }
+                                </Icon>
+                            </div>
+                            : null}
                     </ListItem>
-                })}          
+                })}
             </List>
         </Card>
     </>;
