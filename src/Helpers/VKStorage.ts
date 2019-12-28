@@ -18,12 +18,12 @@ type IKeys = {
 let replaceSymbol = "➨";
 
 const getParsedData = (key: VKStorageKeys, value: string) => {
-    try{
+    try {
         return JSON.parse(
             value.replace(new RegExp(replaceSymbol, "g"), `"`)
         );
-    } catch(err) {
-        if(err instanceof SyntaxError){
+    } catch (err) {
+        if (err instanceof SyntaxError) {
             vkStorageSet(key, null);
         }
         return null;
@@ -31,31 +31,32 @@ const getParsedData = (key: VKStorageKeys, value: string) => {
 }
 
 export async function vkStorageGet<T extends VKStorageKeys | VKStorageKeys[]>(key: T): Promise<T extends Array<any> ? IKeys : any | null> {
-    if(process.env.NODE_ENV === "production")console.log("%cVK STORAGE GET REQUESTED:", "color: deepskyblue", key);
-    if(!getVKParam("app_id"))return null;
+    if (process.env.NODE_ENV === "production") console.log("%cVK STORAGE GET REQUESTED:", "color: deepskyblue", key);
+    if (!getVKParam("app_id")) return null;
     let { keys } = await vkConnect.sendPromise("VKWebAppStorageGet", { keys: [].concat(key) });
-    keys = keys.map(data => 
-        ({...data, value: data.value === "" ? null : 
-            getParsedData(data.key as VKStorageKeys, data.value)
+    keys = keys.map(data =>
+        ({
+            ...data, value: data.value === "" ? null :
+                getParsedData(data.key as VKStorageKeys, data.value)
         })
     );
-    if(typeof key === "string"){
+    if (typeof key === "string") {
         return keys[0].value as any;
     } else {
         return { keys } as any;
     }
 }
 
-export async function vkStorageSet(key: VKStorageKeys, srcValue: any): Promise<boolean>{
+export async function vkStorageSet(key: VKStorageKeys, originalValue: any): Promise<boolean> {
     if (key === null || !getVKParam("app_id")) return false;
     let value: string;
-    if(srcValue === null){
+    if (originalValue === null) {
         value = "";
     } else {
-        value = JSON.stringify(srcValue);
+        value = JSON.stringify(originalValue);
         value = value.replace(new RegExp(replaceSymbol, "g"), "");
         value = value.replace(/\"/ig, replaceSymbol);
     }
-    await vkConnect.sendPromise("VKWebAppStorageSet", {key, value});
+    await vkConnect.sendPromise("VKWebAppStorageSet", { key, value });
     return true;
 }
