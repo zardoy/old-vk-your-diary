@@ -1,97 +1,129 @@
-import React from "react";
-import { Page, Navbar, List, ListInput, Block, Button, Popup, NavLeft, Link } from "framework7-react";
-import { Formik } from "formik";
+import React, { useMemo, useEffect, useRef } from "react";
+import { Page, Navbar, List, ListInput, Block, Button, Popup, NavLeft, Link, f7 } from "framework7-react";
+import { Formik, useFormik, useField, useFormikContext, FormikHelpers } from "formik";
 import serverRequest, { uploadFiles } from "../Backend";
 import { FILE_UPLOAD_SIZE_LIMIT } from "../Backend/fileUpload";
 import { FetchedHomework } from "../Redux/homework/types";
-import { connect as reduxConnect } from "react-redux";
+import { connect as reduxConnect, useSelector } from "react-redux";
 import { AppState } from "../Redux/types";
 import dateFormatter from "../Helpers/DateFormater";
 import { editHomeworkTask, appendHomeworkTask } from "../Redux/homework/actions";
 import { getUnsupportedFilesForUpload } from "../Backend/File";
 import { _t } from "../Localization";
+import * as Yup from "yup";
 
-//{
-interface OwnProps {
+interface Props {
     taskId: number | undefined
 }
 
-interface StateProps {
-    homework: FetchedHomework,
-    currentGroupId: number,
-    knownSubjects: string[]
+let SubjectInput: React.FC<{ name: string }> = (props) => {
+    let [fieldProps,] = useField(props);
+    let formik = useFormikContext();
+    return <ListInput
+        label="Предмет"
+        outline
+        required
+        validate
+        clearButton
+        autocomplete="off"
+        onInputClear={() => formik.setFieldValue(props.name, "", true)}
+        {...fieldProps}
+    />;
 }
 
-interface DispatchProps {
-    editHomeworkTask,
-    appendHomeworkTask
-}
-
-type Props = OwnProps & StateProps & DispatchProps;
-//}
-
-interface FormValues {
-    subject: string,
-    homework: string,
-    date: Date[]
-}
-
-interface formInputSpec {
-    label: string,
-    name: string,
-    props?: {
-        [prop: string]: any
-    }
-}
-
-class HomeworkEditor extends React.Component<Props> {//todo Избавиться от глобальных IDшников на input'ах
-    initialValues;
-    subjectAutocomplete;
-    editingTaskId;
-    editingMode;
-    setFieldValue;
-    handleChangeSubject;
-
-    constructor(props: Props) {
-        super(props);
-        this.editingTaskId = props.taskId || null;
-        this.editingMode = this.editingTaskId !== null;
-        this.initialValues = this.getInitialValues();
-    }
-
-    componentWillUnmount = () => {
-        this.subjectAutocomplete.destroy();
-    }
-
-    componentDidMount = () => {
-        this.initAutocomplete();
-    }
-
-    initAutocomplete = () => {
-        this.subjectAutocomplete = this.$f7.autocomplete.create({
-            inputEl: "#autocomplete-subjects-input",
+let HomeworkInput: React.FC<{ name: string }> = (props) => {
+    let [fieldProps,] = useField(props);
+    let formik = useFormikContext();
+    let knownSubjects = useSelector((state: AppState) => state.homework.knownSubjects);
+    let inputRef = useRef(null as HTMLInputElement);
+    useEffect(() => {
+        if (!inputRef.current) return;
+        let subjectAutocomplete = f7.autocomplete.create({
+            inputEl: inputRef.current,
             openIn: "dropdown",
-            source: (...args) => this.getSubjectsByQuery(...args)//TODO
+            source(query, render) {
+                render(knownSubjects.filter(
+                    subject => subject.toLowerCase().includes(query.toLowerCase())
+                ));
+            }
         });
-        this.subjectAutocomplete.on("change", this.handleSelectAutomplete);
-    }
+        subjectAutocomplete.on("change", ([value]: [string]) => {
+            formik.setFieldValue(props.name, value, true);
+        });
+        return () => {
+            subjectAutocomplete.destroy();
+        }
+    }, []);
+    return <ListInput
+        label="Задание"
+        outline
+        required
+        validate
+        clearButton
+        autocomplete="off"
+        onInputClear={() => formik.setFieldValue(props.name, "")}
+        input={false}
+        {...fieldProps}
+    >
+        <input slot="input" ref={inputRef} />
+    </ListInput>;
+}
 
-    handleSelectAutomplete = ([value]: [string]) => {
-        this.handleChangeSubject(value);
-    }
+let HomeworkEditor: React.FC<Props> = (props) => {
+    let { taskId: editingTaskId } = props;
+    let editingMode = props.taskId !== undefined;
 
-    getSubjectsByQuery = (query: string, render: (...args) => any): void => {
-        render(this.props.knownSubjects.filter(
-            subject => subject.toLocaleLowerCase().includes(query.toLowerCase())
-        ));
-    }
+    let currentGroupId = useSelector((state: AppState) => state.groups.currentGroupId);
+    let cachedHomework = useSelector((state: AppState) => state.homework.cached[state.homework.selectedHomeworkType]);
 
-    submitData = (values: FormValues) => {
-        let { currentGroupId } = this.props;
+    let validationSchema = Yup.object({
+        subject: Yup.string().required(),
+        homework: Yup.string().required(),
+        date: Yup.date().required(),
+        files: Yup.array().required()
+    });
+
+    type FormikValues = Yup.InferType<typeof validationSchema>;
+
+    let initialValues = useMemo((): FormikValues => {
+        if (editingMode) {
+            for (let [day, tasks] of Object.entries(cachedHomework)) {
+                for (let task of tasks) {
+                    if (task.task_id !== editingTaskId) continue;
+                    return {
+                        subject: task.subject,
+                        homework: task.homework,
+                        date: new Date(day)
+                    }
+                }
+            }
+        } else {
+            let dateTomorrow = new Date();
+            dateTomorrow.setDate(dateTomorrow.getDate() + 1);
+            return {
+                subject: "",
+                homework: "",
+                date: dateTomorrow
+            };
+        }
+    }, [editingMode, editingTaskId]);
+
+    let submitUserData = async (values: FormikValues, formikHelpers: FormikHelpers<FormikValues>) => {
+        if (!currentGroupId) return;
         let { subject, homework } = values,
             date = values.date[0];//todo: date is string
+        if (editingMode) {
+            if (editingTaskId === undefined) return;
+            let { hasError } = await serverRequest("homework.Edit", {
+                group_id: currentGroupId,
+                task_id: editingTaskId,
+                subject,
+                homework
+            });
+            if (hasError) return;
+            f7.views.current.router.back();
+        } else {
 
-        if (!this.editingMode) {
             let filesEl: HTMLInputElement = document.querySelector("#append-to-homework-files-input");
             (filesEl.files.length ? uploadFiles(filesEl.files) : Promise.resolve([]))
                 .then(files_id => {
@@ -109,164 +141,57 @@ class HomeworkEditor extends React.Component<Props> {//todo Избавиться
                             this.$f7.views.current.router.back();
                         });
                 })
-
-        } else {
-            serverRequest("homework.Edit", {
-                group_id: currentGroupId,
-                task_id: this.editingTaskId,
-                subject,
-                homework
-            })
-                .then(response => {
-                    if (response.hasError) return;
-                    // this.props.editHomeworkTask();
-                    this.$f7.views.current.router.back();
-                });
         }
-    }
+    };
 
-    seeRestrictions = () => {//todo: to popup
-        this.$f7.dialog.alert("- each file size must be less 19MB <br> - each file ... <br> - total files size must be less than 100MB <br> - you can attach less than (or equal) 10 files", "File restrictions");
-    }
+    type FormikValueKeys = keyof FormikValues;
 
-    getInitialValues = (): FormValues => {
-        if (!this.editingMode) {
-            let dateTomorrow = new Date();
-            dateTomorrow.setDate(dateTomorrow.getDate() + 1);
-            return {
-                subject: "",
-                homework: "",
-                date: [dateTomorrow]
-            };
-        } else {
-            for (let [day, tasks] of Object.entries(this.props.homework)) {
-                for (let [, task] of Object.entries(tasks)) {
-                    if (task.task_id !== this.editingTaskId) continue;
-                    return {
-                        subject: task.subject,
-                        homework: task.homework,
-                        date: [new Date(day)]
-                    }
-                }
-            }
-        }
-    }
+    return <Popup>
+        <Page>
+            <Navbar title={editingMode ? "Изменение ДЗ" : "Добавление ДЗ"} >
+                <Link slot="left" popupClose>{_t("ClosePopup")}</Link>
+            </Navbar>
+            <Formik
+                initialValues={initialValues}
+                onSubmit={submitUserData}
+                validationSchema={validationSchema}
+            >
+                <>
+                    <List noHairlinesMd form>
+                        {/* {//string inputs
+                    Object.entries(formik.values).map(([name, value]) => {
+                        <ListInput
+                            key={name}
+                            outline
+                            label={name}
+                            name={name}
+                            value={formik.values[name]}
+                            required
+                            validate
+                            clearButton
+                            autocomplete="off"
+                            onChange={formik.handleChange}
+                            onInputClear={() => formik.setFieldValue(name, "")}
+                        />
+                    })
+                } */}
+                        <SubjectInput slot="list" name="subject" />
+                        <HomeworkInput name="homework" />
+                    </List>
+                    <Block>
+                        {/* <Button
+                        fill
+                        large
+                        // disabled={Object.keys(errors).length !== 0}
+                        onClick={}
+                    >
+                        {editingMode ? "Редактировать" : "Добавить"} ДЗ
+                    </Button> */}
+                    </Block>
+                </>
+            </Formik>
 
-    validateForm = (values: FormValues) => {
-        let errors = {};
-        if (
-            !values.subject.length ||
-            !values.homework.length
-        ) {
-            errors["anything"] = "Required";
-        }
-
-        if (this.editingMode) {
-            // for(let [name, value] of Object.entries(values)){
-            //     if(name === "date")continue;
-            //     if(value !== this.initialValues[name])continue;
-            //     console.log(name, value);
-            //     errors[name] = "Same value";
-            // }//rework
-            if (values.subject === this.initialValues.subject && values.homework === this.initialValues.homework) errors["anything"] = "Same value";
-        } else {//VALIDATE FILE
-            let fileEl: HTMLInputElement = document.querySelector("#append-to-homework-files-input");
-            let files: File[] = [].slice.call(fileEl.files);
-            let filesWithBigSize = files.filter(file => file.size >= FILE_UPLOAD_SIZE_LIMIT).map(file => `${file.name} (${this.$f7.finder7.getReadableFileSize(file.size)})`);
-            if (filesWithBigSize.length !== 0) {//CHECK FILES SIZE
-                errors["file"] = "Размер следующих файлов превышает 19 МБ: " + filesWithBigSize.join(", ");
-            } else {//CHECK FILES FORMAT
-                let unsupportedFiles = getUnsupportedFilesForUpload(files).map(file => file.name);
-                if (unsupportedFiles.length !== 0) {
-                    errors["file"] = "Формат следующих файлов не поддерживается: " + unsupportedFiles.join(", ")
-                } else {
-                    if (files.length >= 10) {
-                        errors["file"] = "Количество файлов должно быть меньше 10";
-                    }
-                }
-            }
-        }
-
-        return errors;
-    }
-
-    handleClearButton = (event) => {
-        let target = event.target as HTMLInputElement;
-        target.value = "";
-        target.dispatchEvent(new Event("input"));
-    }
-
-    getEventDays = () => {
-        // this.props.homework
-    }
-
-    render() {
-        let formData: formInputSpec[] = [
-            {
-                label: "Предмет",
-                name: "subject",
-                props: {
-                    clearButton: true,
-                    inputId: "autocomplete-subjects-input",
-                    maxlength: 20
-                }
-            },
-            {
-                label: "Задание",
-                name: "homework",
-                props: {
-                    type: "textarea",
-                    clearButton: true
-                }
-            },
-            {
-                label: "Дата, на которое задано",
-                name: "date",
-                props: {
-                    type: "datepicker",
-                    calendarParams: {
-                        minDate: new Date(),
-                        openIn: "popover",
-                        formatValue: dateFormatter.bind(this, this.$f7.language),
-                        closeOnSelect: true,
-                        events: [
-                            {
-                                date: new Date(2019, 12, 1),
-                                color: '#ff0000'
-                            }
-                        ]
-                    },
-                    disabled: this.editingMode//TODO
-                }
-            }
-        ];
-
-        //Кидать в предложку on edit back
-        return <Popup>
-            <Page noToolbar>
-
-                <Navbar title={this.editingMode ? "Изменение ДЗ" : "Добавление ДЗ"}>
-                    <Link slot="left" popupClose>{_t("ClosePopup")}</Link>
-                </Navbar>
-                <Formik
-                    initialValues={this.initialValues}
-                    onSubmit={this.submitData}
-                    validate={this.validateForm}
-                    initialErrors={{ anything: "" }}
-                >{({
-                    values,
-                    errors,
-                    handleChange,
-                    handleSubmit,
-                    validateForm,
-                    setFieldValue
-                }) => (
-                        <>
-                            <List noHairlinesMd>{/* TODO: onChange вызывается слишком часто */}
-                                {formData.map((inputData: formInputSpec) => {
-                                    let props = inputData.props || {};
-
-                                    return <ListInput
+            {/* return <ListInput
                                         key={inputData.name}
                                         outline
                                         label={inputData.label}
@@ -278,28 +203,21 @@ class HomeworkEditor extends React.Component<Props> {//todo Избавиться
                                         validate
                                         onInputClear={e => { this.handleClearButton(e); handleChange(e) }}
                                         {...props}
-                                    />;
-                                })}
-                                <ListInput
-                                    type="file"
-                                    label="Прикрепленные файлы"
-                                    outline
-                                    multiple
-                                    disabled={this.editingMode}
-                                    inputId="append-to-homework-files-input"
-                                    onChange={() => validateForm()}
-                                    errorMessage={errors.file as string}
-                                    errorMessageForce={"file" in errors}
-                                >
-                                    <Link slot="info" onClick={this.seeRestrictions}>См. ограничения</Link>
-                                </ListInput>
-                                {/* TODO upper text */}
-
-                            </List>
-                            {(this.handleChangeSubject = (value => setFieldValue("subject", value, true))) && false}
-                            {/* Ваще идиотизм какой-то позор на всю жизнь! */}
-                            {/* Переделать с useFormik! */}
-                            <Block strong style={{ display: "none" }}>
+                                    />; */}
+            {/* <ListInput
+                    type="file"
+                    label="Прикрепленные файлы"
+                    outline
+                    multiple
+                    disabled={this.editingMode}
+                    inputId="append-to-homework-files-input"
+                    onChange={() => validateForm()}
+                    errorMessage={errors.file as string}
+                    errorMessageForce={"file" in errors}
+                >
+                    <Link slot="info" onClick={this.seeRestrictions}>См. ограничения</Link>
+                </ListInput> */}
+            {/* <Block strong style={{ display: "none" }}>
                                 <span className="calendar-day calendar-day-events" style={{ display: "inline" }}>
                                     <span className="calendar-day-event" style={{ backgroundColor: "#00ff00" }}></span>
                                 </span>//TODO: calendars dots 
@@ -308,33 +226,25 @@ class HomeworkEditor extends React.Component<Props> {//todo Избавиться
                                 <span className="calendar-day calendar-day-events">
                                     <span className="calendar-day-event" style={{ backgroundColor: "#ff0000" }}></span>
                                 </span>
-                                — дни, на которые больше 5 заданий
-                        </Block>
-                            <Block>
-                                <Button
-                                    fill
-                                    large
-                                    disabled={Object.keys(errors).length !== 0}
-                                    onClick={handleSubmit}
-                                >
-                                    {this.editingTaskId === null ? "Добавить" : "Редактировать"} ДЗ
-                            </Button>
-                            </Block>
-                        </>
-                    )}
-                </Formik>
-            </Page>
-        </Popup>
-    }
+                                — дни, на которые больше 5 заданий */}
+            {/* </Block> */}
+        </Page>
+    </Popup>
 }
 
-const mapStateToProps = (state: AppState): StateProps => ({
-    homework: state.homework.cached.topical,
-    knownSubjects: state.homework.knownSubjects,
-    currentGroupId: state.groups.currentGroupId
-})
+HomeworkEditor = React.memo(HomeworkEditor);
 
-export default reduxConnect(mapStateToProps, {
-    editHomeworkTask,
-    appendHomeworkTask
-})(HomeworkEditor);
+HomeworkEditor.displayName = "HomeworkEditor";
+
+export default HomeworkEditor;
+
+// const mapStateToProps = (state: AppState): StateProps => ({
+//     homework: state.homework.cached.topical,
+//     knownSubjects: state.homework.knownSubjects,
+//     currentGroupId: state.groups.currentGroupId
+// })
+
+// export default reduxConnect(mapStateToProps, {
+//     editHomeworkTask,
+//     appendHomeworkTask
+// })(HomeworkEditor);
