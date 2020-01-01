@@ -46,7 +46,7 @@
   },
   "homepage": "./",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "cross-env PORT=10888 react-scripts start",
     "test": "react-scripts test",
     "build:+0.0.1": "npm version patch && npm run build:publish",
     "build:+0.1.0": "npm version minor && npm run build:publish",
