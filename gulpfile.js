@@ -2,6 +2,8 @@ const gulp = require("gulp");
 const ftp = require("vinyl-ftp");
 const log = require("fancy-log");
 const del = require("del");
+const open = require("open");
+const packageJSON = require("./package.json");
 const {
     host,
     user,
@@ -30,7 +32,7 @@ gulp.task("deploy:upload", () => {
         .pipe(conn.dest(dest));
 });
 
-gulp.task("deploy:local-clean", cb => {
+gulp.task("deploy:local-clean", () => {
     return del(localSrc);
 })
 
@@ -39,3 +41,7 @@ gulp.task("deploy:server-clean", () => {
 })
 
 gulp.task("deploy", gulp.series("deploy:upload", "deploy:server-clean", "deploy:local-clean"));
+
+gulp.task("start:browser", async () => {
+    await open("https://m.vk.com/app" + (+packageJSON.vk_com_app_id));
+})
