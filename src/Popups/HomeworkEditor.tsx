@@ -124,6 +124,7 @@ let HomeworkEditor: React.FC<Props> = (props) => {
                         date: new Date(day)
                     }
                 }
+
             }
         } else {
             let dateTomorrow = new Date();
@@ -134,7 +135,7 @@ let HomeworkEditor: React.FC<Props> = (props) => {
                 date: dateTomorrow
             };
         }
-    }, [editingMode, editingTaskId]);
+    }, [editingMode, editingTaskId, cachedHomework]);
 
     let submitUserData = async (values: FormikValues, formikHelpers: FormikHelpers<FormikValues>) => {
         if (!currentGroupId) return;

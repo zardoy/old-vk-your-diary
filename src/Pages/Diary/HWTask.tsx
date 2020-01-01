@@ -99,7 +99,7 @@ let HomeworkPage: React.FC<Props> = (props) => {
                 onClick: callback
             }
         });
-    }, [taskInfo]);
+    }, [taskInfo, currentGroupId, dispatch]);
 
     let fetchFilesList = (doneFunc?: () => void) => {
         let controller = new AbortController();
