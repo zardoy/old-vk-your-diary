@@ -13,20 +13,25 @@ const {
     localSrc = "build"
 } = require("./deploy-hosting-config.json");
 
-if (!host || !user || !pass || !dest) throw new Error("You must specify all host data in config file.");
+let conn;
 
-const conn = ftp.create({
-    host,
-    user,
-    pass,
-    secure,
-    log: log,
-    secureOptions: {
-        rejectUnauthorized: false
-    }
-});
+const createFtp = () => {
+    if (conn) return;
+    if (!host || !user || !pass || !dest) throw new Error("You must specify all host data in config file.");
+    conn = ftp.create({
+        host,
+        user,
+        pass,
+        secure,
+        log: log,
+        secureOptions: {
+            rejectUnauthorized: false
+        }
+    });
+}
 
 gulp.task("deploy:upload", () => {
+    createFtp();
     return gulp.src(`${localSrc}/**/*`)
         .pipe(conn.newer(dest))
         .pipe(conn.dest(dest));
@@ -37,6 +42,7 @@ gulp.task("deploy:local-clean", () => {
 })
 
 gulp.task("deploy:server-clean", () => {
+    createFtp();
     return conn.clean(`${dest}/**`, localSrc);
 })
 
